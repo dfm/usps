@@ -3,8 +3,10 @@ extends Node2D
 # Parameters
 export(float) var G = 10000000
 export(int) var max_trail_length = 100
-export(Vector2) var cen_coords = Vector2(600, 600)
+export(Vector2) var cen_coords = Vector2(0, 0)
 export(float) var time_stretch = 2
+export(int) var nsteps = 5
+export(float) var softening = 5
 
 class Body:
     var mass
@@ -45,21 +47,22 @@ var bodies = Array()
 func _ready():
     randomize()
     
-    bodies.append(Body.new(1,    Vector2(512, 200),  Vector2(0, 0)))
-    bodies.append(Body.new(0.1,  Vector2(512, 400),  Vector2(200, 0)))
-    bodies.append(Body.new(0.01, Vector2(1012, 400), Vector2(0, 100)))
+    bodies.append(Body.new(1,    Vector2(0, 0),   Vector2(0, 0)))
+    bodies.append(Body.new(0.05, Vector2(0, 400), Vector2(150, 0)))
+    bodies.append(Body.new(0.01, Vector2(0, 700), Vector2(170, 0)))
     
     center()
     compute_accelerations()
     set_process(true)
     
 func compute_accelerations():
+    var eps2 = softening * softening
     for i in range(len(bodies)):
         bodies[i].acc = Vector2(0.0, 0.0)
     for i in range(len(bodies)):
         for j in range(i+1, len(bodies)):
             var delta = bodies[i].pos - bodies[j].pos
-            var r2 = delta.length_squared()
+            var r2 = delta.length_squared() + eps2
             var a0 = G * delta / (r2 * sqrt(r2))
             bodies[i].acc -= a0 * bodies[j].mass
             bodies[j].acc += a0 * bodies[i].mass
@@ -75,8 +78,8 @@ func center():
     com -= cen_coords
     for i in range(len(bodies)):
         bodies[i].pos -= com
-
-func leapfrog(delta, nsteps=2):
+        
+func leapfrog(delta):
     var eps = delta / nsteps
     for j in range(nsteps):
         # Initial kick
@@ -98,14 +101,13 @@ func update_trails():
         if len(trail) > max_trail_length:
             trail.remove(0)
         bodies[i].trail = trail
-
         
 func _draw():
     for i in range(len(bodies)):
         var body = bodies[i]
         if len(body.trail) >= 2:
-            draw_polyline(body.trail, bodies[i].color.lightened(0.2), 4, true)
-        draw_circle(body.pos, 10, bodies[i].color)
+            draw_polyline(body.trail, bodies[i].color.lightened(0.2), 8, true)
+        draw_circle(body.pos, 20 + 30 * bodies[i].mass, bodies[i].color)
 
 func _process(delta):
     leapfrog(time_stretch*delta)
