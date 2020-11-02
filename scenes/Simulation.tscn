@@ -1,17 +1,22 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://src/Simulation.gd" type="Script" id=1]
+[ext_resource path="res://scenes/Planet.tscn" type="PackedScene" id=2]
 
-[node name="Simulation" type="Node2D" index="0"]
-
+[node name="Simulation" type="Node2D"]
 script = ExtResource( 1 )
-G = 2942.2
-time_factor = 2
-softening_length = 0.1
-max_drift = 0.1
-num_leapfrog = 3
-max_distance = 50
-pixel_resolution = 10
-max_trail_length = 50
+G = 5000.0
+time_factor = 5.0
+num_leapfrog = 10
 
+[node name="Planets" type="Node2D" parent="."]
 
+[node name="Planet" parent="Planets" instance=ExtResource( 2 )]
+position = Vector2( 550, 300 )
+mass = 10.0
+velocity = Vector2( -5, 0 )
+
+[node name="Planet2" parent="Planets" instance=ExtResource( 2 )]
+position = Vector2( 550, 200 )
+mass = 2.0
+velocity = Vector2( 20, 0 )
