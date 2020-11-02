@@ -1,2 +1,6 @@
-.import
 .DS_Store
+*.import
+*.dblite
+.code
+*.os
+bin/*

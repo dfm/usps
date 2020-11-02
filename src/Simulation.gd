@@ -1,7 +1,9 @@
 extends Node2D
 
+var integrator = load("res://bin/integrator.gdns").new()
+
 # Newton's constant in pixels^3 / (mass_unit * seconds^2)
-export(float) var G = 5000
+export(float) var grav = 5000
 
 # The number of simulation "days" per real time second
 export(float) var time_factor = 2
@@ -16,53 +18,58 @@ var bodies = []
 
 
 func _ready():
+    integrator.grav = grav
+    integrator.time_factor = time_factor
+    integrator.softening_length = softening_length
+    integrator.num_leapfrog = num_leapfrog
+
     for body in get_node("Planets").get_children():
         bodies.push_back(body)
-        print(body.position)
+
     set_process(true)
 
-# Compute the acceleration for each body based on all the others
-func compute_accelerations(masses, positions):
-    if len(masses) == 0:
-        return
+# # Compute the acceleration for each body based on all the others
+# func compute_accelerations(masses, positions):
+#     if len(masses) == 0:
+#         return
 
-    # Initialize the accelerations to zero
-    var accelerations = []
-    for _i in range(len(masses)):
-        accelerations.push_back(Vector2(0, 0))
+#     # Initialize the accelerations to zero
+#     var accelerations = []
+#     for _i in range(len(masses)):
+#         accelerations.push_back(Vector2(0, 0))
 
-    # Loop over each pair of bodies and compute the acceleration
-    for i in range(len(bodies)):
-        for j in range(i+1, len(bodies)):
-            var delta = positions[i] - positions[j]
-            var r2 = delta.length_squared() + softening_length
-            var a0 = G * delta / (r2 * sqrt(r2))
-            accelerations[i] -= a0 * masses[j]
-            accelerations[j] += a0 * masses[i]
+#     # Loop over each pair of bodies and compute the acceleration
+#     for i in range(len(bodies)):
+#         for j in range(i+1, len(bodies)):
+#             var delta = positions[i] - positions[j]
+#             var r2 = delta.length_squared() + softening_length
+#             var a0 = G * delta / (r2 * sqrt(r2))
+#             accelerations[i] -= a0 * masses[j]
+#             accelerations[j] += a0 * masses[i]
 
-    return accelerations
+#     return accelerations
 
 
-# Integrate the N-body system
-func leapfrog(delta, masses, positions, velocities):
-    var eps = delta / num_leapfrog
+# # Integrate the N-body system
+# func leapfrog(delta, masses, positions, velocities):
+#     var eps = delta / num_leapfrog
 
-    var accelerations = compute_accelerations(masses, positions)
+#     var accelerations = compute_accelerations(masses, positions)
 
-    for _j in range(num_leapfrog):
-        # Initial kick
-        for i in range(len(masses)):
-            velocities[i] += 0.5 * eps * accelerations[i]
-            positions[i] += eps * velocities[i]
+#     for _j in range(num_leapfrog):
+#         # Initial kick
+#         for i in range(len(masses)):
+#             velocities[i] += 0.5 * eps * accelerations[i]
+#             positions[i] += eps * velocities[i]
 
-        # Update the accelerations
-        accelerations = compute_accelerations(masses, positions)
+#         # Update the accelerations
+#         accelerations = compute_accelerations(masses, positions)
 
-        # Syncronize the velocities
-        for i in range(len(masses)):
-            velocities[i] += 0.5 * eps * accelerations[i]
+#         # Syncronize the velocities
+#         for i in range(len(masses)):
+#             velocities[i] += 0.5 * eps * accelerations[i]
 
-    return [positions, velocities]
+#     return [positions, velocities]
 
 func _process(delta):
     if len(bodies) == 0:
@@ -76,7 +83,12 @@ func _process(delta):
         positions.push_back(bodies[i].position)
         velocities.push_back(bodies[i].velocity)
 
-    [positions, velocities] = leapfrog(time_factor * delta, masses, positions, velocities)
+    # print(integrator.update(masses))
+
+    # [positions, velocities] = leapfrog(time_factor * delta, masses, positions, velocities)
+    var result = integrator.update(delta, masses, positions, velocities)
+    positions = result[0]
+    velocities = result[1]
 
     for i in range(len(bodies)):
         bodies[i].position = positions[i]

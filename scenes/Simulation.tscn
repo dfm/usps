@@ -5,9 +5,8 @@
 
 [node name="Simulation" type="Node2D"]
 script = ExtResource( 1 )
-G = 5000.0
-time_factor = 5.0
-num_leapfrog = 10
+time_factor = 10.0
+num_leapfrog = 1
 
 [node name="Planets" type="Node2D" parent="."]
 
