@@ -39,11 +39,14 @@ class USPSItegrator : public Reference {
   real_t eps2;
   int num_leapfrog;
 
+  std::vector<USPSBody> bodies;
+
  public:
   static void _register_methods();
+  void _init(){};
 
-  USPSItegrator();
-  ~USPSItegrator();
+  USPSItegrator(){};
+  ~USPSItegrator(){};
 
   real_t get_grav() const { return grav; }
   void set_grav(real_t value) { grav = value; }
@@ -60,11 +63,16 @@ class USPSItegrator : public Reference {
   int get_num_leapfrog() const { return num_leapfrog; }
   void set_num_leapfrog(int value) { num_leapfrog = value; }
 
-  void compute_accelerations(std::vector<USPSBody>&);
-  void leapfrog(real_t, std::vector<USPSBody>&);
+  void add_body(real_t mass, Vector2 position, Vector2 velocity) {
+    bodies.push_back({mass, {position.x, position.y}, {velocity.x, velocity.y}});
+  }
 
-  void _init();
-  Array update(real_t, PoolRealArray, PoolVector2Array, PoolVector2Array);
+  void compute_accelerations();
+  void update_positions(real_t);
+  void update_velocities(real_t);
+  void leapfrog(real_t);
+
+  Array integrate(real_t delta);
 };
 
 }  // namespace godot

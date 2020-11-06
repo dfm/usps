@@ -5,7 +5,8 @@
 using namespace godot;
 
 void USPSItegrator::_register_methods() {
-  register_method("update", &USPSItegrator::update);
+  register_method("add_body", &USPSItegrator::add_body);
+  register_method("integrate", &USPSItegrator::integrate);
   register_property<USPSItegrator, real_t>("grav", &USPSItegrator::set_grav,
                                            &USPSItegrator::get_grav, 5000.0);
   register_property<USPSItegrator, real_t>("time_factor", &USPSItegrator::set_time_factor,
@@ -17,14 +18,13 @@ void USPSItegrator::_register_methods() {
                                         &USPSItegrator::get_num_leapfrog, 3);
 }
 
-USPSItegrator::USPSItegrator() {}
-
-USPSItegrator::~USPSItegrator() {
-  // add your cleanup here
-}
-
-void USPSItegrator::compute_accelerations(std::vector<USPSBody>& bodies) {
+void USPSItegrator::compute_accelerations() {
   size_t N = bodies.size();
+
+  for (size_t n = 0; n < N; ++n) {
+    bodies[n].acceleration = {0, 0};
+  }
+
   for (size_t n = 0; n < N; ++n) {
     for (size_t m = n + 1; m < N; ++m) {
       USPSBody& body1 = bodies[n];
@@ -38,45 +38,41 @@ void USPSItegrator::compute_accelerations(std::vector<USPSBody>& bodies) {
   }
 }
 
-void USPSItegrator::leapfrog(real_t delta, std::vector<USPSBody>& bodies) {
+void USPSItegrator::update_positions(real_t eps) {
   size_t N = bodies.size();
-  real_t eps = time_factor * delta / num_leapfrog;
-  compute_accelerations(bodies);
-
   for (size_t n = 0; n < N; ++n) {
     USPSBody& body = bodies[n];
-    body.velocity.update(0.5 * eps, body.acceleration);
-  }
-
-  for (int i = 0; i < num_leapfrog; ++i) {
-    for (size_t n = 0; n < N; ++n) {
-      USPSBody& body = bodies[n];
-      body.position.update(eps, body.velocity);
-    }
-    compute_accelerations(bodies);
-    for (size_t n = 0; n < N; ++n) {
-      USPSBody& body = bodies[n];
-      body.velocity.update(eps, body.acceleration);
-    }
-  }
-
-  for (size_t n = 0; n < N; ++n) {
-    USPSBody& body = bodies[n];
-    body.velocity.update(-0.5 * eps, body.acceleration);
+    body.position.update(eps, body.velocity);
   }
 }
 
-void USPSItegrator::_init() {}
-
-Array USPSItegrator::update(real_t delta, PoolRealArray masses, PoolVector2Array positions,
-                            PoolVector2Array velocities) {
-  int N = masses.size();
-  std::vector<USPSBody> bodies(N);
-  for (int n = 0; n < N; ++n) {
-    bodies[n] = {masses[n], {positions[n].x, positions[n].y}, {velocities[n].x, velocities[n].y}};
+void USPSItegrator::update_velocities(real_t eps) {
+  size_t N = bodies.size();
+  for (size_t n = 0; n < N; ++n) {
+    USPSBody& body = bodies[n];
+    body.velocity.update(eps, body.acceleration);
   }
+}
 
-  leapfrog(delta, bodies);
+void USPSItegrator::leapfrog(real_t delta) {
+  size_t N = bodies.size();
+  real_t eps = time_factor * delta / num_leapfrog;
+
+  compute_accelerations();
+  update_velocities(0.5 * eps);
+  for (int i = 0; i < num_leapfrog - 1; ++i) {
+    update_positions(eps);
+    compute_accelerations();
+    update_velocities(eps);
+  }
+  update_positions(eps);
+  compute_accelerations();
+  update_velocities(0.5 * eps);
+}
+
+Array USPSItegrator::integrate(real_t delta) {
+  int N = bodies.size();
+  leapfrog(delta);
 
   PoolVector2Array final_positions, final_velocities;
   for (int n = 0; n < N; ++n) {
