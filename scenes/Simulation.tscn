@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://src/Simulation.gd" type="Script" id=1]
-[ext_resource path="res://scenes/Planet.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/Actors/Planet.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/Actors/Star.tscn" type="PackedScene" id=4]
 
 [node name="Simulation" type="Node2D"]
 script = ExtResource( 1 )
@@ -10,12 +11,19 @@ num_leapfrog = 1
 
 [node name="Planets" type="Node2D" parent="."]
 
-[node name="Planet" parent="Planets" instance=ExtResource( 2 )]
-position = Vector2( 550, 300 )
+[node name="Star" parent="Planets" instance=ExtResource( 4 )]
+position = Vector2( 960, 540 )
+scale = Vector2( 1.5, 1.5 )
 mass = 10.0
-velocity = Vector2( -5, 0 )
+
+[node name="Planet" parent="Planets" instance=ExtResource( 2 )]
+position = Vector2( 750, 540 )
+scale = Vector2( 0.5, 0.5 )
+mass = 0.1
+velocity = Vector2( 0, 15 )
 
 [node name="Planet2" parent="Planets" instance=ExtResource( 2 )]
-position = Vector2( 550, 200 )
-mass = 2.0
-velocity = Vector2( 20, 0 )
+position = Vector2( 960, 120 )
+scale = Vector2( 0.3, 0.3 )
+mass = 0.1
+velocity = Vector2( 10, 0 )

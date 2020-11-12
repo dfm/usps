@@ -72,11 +72,13 @@ texture = SubResource( 3 )
 centered = false
 
 [node name="Nebulae" type="Sprite" parent="."]
+visible = false
 material = SubResource( 6 )
 texture = SubResource( 7 )
 centered = false
 
 [node name="Nebulae2" type="Sprite" parent="."]
+visible = false
 material = SubResource( 10 )
 texture = SubResource( 7 )
 centered = false
