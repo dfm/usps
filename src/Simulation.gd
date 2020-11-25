@@ -1,42 +1,35 @@
-class_name Simulation
 extends Node2D
 
-# var integrator = load("res://bin/integrator.gdns").new()
+export(float) var G = 1000000.0
+export(float) var eps2 = 0.1
 
-# Newton's constant in pixels^3 / (mass_unit * seconds^2)
-export(float) var grav = 5000
+func _ready() -> void:
+    set_physics_process(true)
 
-# The number of simulation "days" per real time second
-export(float) var time_factor = 2
-
-# The softening length scale in R_sun
-export(float) var softening_length = 0.1
-
-# The number of leapfrog steps per frame
-export(int) var num_leapfrog = 1
-
-var bodies: = []
-
-func _ready():
-    # integrator.grav = grav
-    # integrator.time_factor = time_factor
-    # integrator.softening_length = softening_length
-    # integrator.num_leapfrog = num_leapfrog
-    for body in get_children():
-        if not body is GravitationalBody:
-            continue
-        bodies.push_back(body)
-
-func _integrate_forces(state: Physics2DDirectBodyState) -> void:
-    pass
-    # for body in bodies:
-    #     body.linear_velocity.x += 1.0
-    # integrator.reset()
-    # for body in bodies:
-    #     integrator.add_body(body.get_instance_id(), body.mass, body.transform.origin, body.linear_velocity)
-    # var results = integrator.integrate(state.get_step())
-    # var final_positions = results[0]
-    # var final_velocities = results[1]
-    # for n in range(len(bodies)):
-    #     # bodies[n].transform.origin = final_positions[n]
-    #     bodies[n].linear_velocity = final_velocities[n]
+func _physics_process(_delta: float) -> void:
+    var children: = get_children()    
+    var num_children: = len(children)
+    var m1: float
+    var x1: Vector2
+    var force1: Vector2
+    var dx: Vector2
+    var force: Vector2
+    
+    var masses: = []
+    var positions: = []
+    var forces: = []
+    for child in children: 
+        masses.push_back(child.mass)
+        positions.push_back(child.position)
+        forces.push_back(Vector2.ZERO)
+    
+    for n in range(num_children):
+        m1 = G * masses[n]
+        x1 = positions[n]
+        force1 = forces[n]
+        for m in range(n + 1, num_children):
+            dx = x1 - positions[m]
+            force = dx.normalized() * m1 * masses[m] / (dx.length_squared() + eps2)
+            force1 -= force
+            forces[m] += force
+        children[n].set_applied_force(force1)
