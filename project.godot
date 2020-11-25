@@ -8,15 +8,26 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "RigidBody2D",
+"class": "GravitationalBody",
+"language": "GDScript",
+"path": "res://src/actors/GravitationalBody.gd"
+}, {
+"base": "Node2D",
+"class": "Simulation",
+"language": "GDScript",
+"path": "res://src/Simulation.gd"
+} ]
 _global_script_class_icons={
-
+"GravitationalBody": "",
+"Simulation": ""
 }
 
 [application]
 
 config/name="usps"
-run/main_scene="res://scenes/Simulation.tscn"
+run/main_scene="res://src/Main.tscn"
 config/icon="res://icon.png"
 
 [display]
@@ -31,6 +42,11 @@ window/stretch/aspect="keep"
 [gui]
 
 theme/use_hidpi=true
+
+[physics]
+
+common/physics_jitter_fix=0.0
+common/physics_fps.OSX=60
 
 [rendering]
 

@@ -23,6 +23,7 @@ struct USPSVector {
 };
 
 struct USPSBody {
+  int instance_id;
   float mass;
   USPSVector position;
   USPSVector velocity;
@@ -41,6 +42,11 @@ class USPSItegrator : public Reference {
 
   std::vector<USPSBody> bodies;
 
+  void compute_accelerations();
+  void update_positions(real_t);
+  void update_velocities(real_t);
+  void leapfrog(real_t);
+
  public:
   static void _register_methods();
   void _init(){};
@@ -50,29 +56,20 @@ class USPSItegrator : public Reference {
 
   real_t get_grav() const { return grav; }
   void set_grav(real_t value) { grav = value; }
-
   real_t get_time_factor() const { return time_factor; }
   void set_time_factor(real_t value) { time_factor = value; }
-
   real_t get_softening_length() const { return softening_length; }
   void set_softening_length(real_t value) {
     softening_length = value;
     eps2 = softening_length * softening_length;
   }
-
   int get_num_leapfrog() const { return num_leapfrog; }
   void set_num_leapfrog(int value) { num_leapfrog = value; }
 
-  void add_body(real_t mass, Vector2 position, Vector2 velocity) {
-    bodies.push_back({mass, {position.x, position.y}, {velocity.x, velocity.y}});
-  }
-
-  void compute_accelerations();
-  void update_positions(real_t);
-  void update_velocities(real_t);
-  void leapfrog(real_t);
-
+  void reset();
+  void add_body(int instance_id, real_t mass, Vector2 position, Vector2 velocity);
   Array integrate(real_t delta);
+  Vector2 get_position_for_id(int instance_id) const;
 };
 
 }  // namespace godot

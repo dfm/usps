@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://src/Simulation.gd" type="Script" id=1]
+
+[sub_resource type="CircleShape2D" id=1]
+
+[node name="Simulation" type="RigidBody2D"]
+custom_integrator = true
+script = ExtResource( 1 )
+softening_length = 100.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource( 1 )
+disabled = true
